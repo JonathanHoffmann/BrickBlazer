@@ -1,5 +1,5 @@
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../constants';
-import { levels } from '../levels';
+import { getLevelSignature, levels } from '../levels';
 import { SaveManager } from '../storage/SaveManager';
 import { AudioSystem } from '../systems/AudioSystem';
 import { GameState, type GameContext, type SaveData, type Screen, type Vec2 } from '../types';
@@ -275,7 +275,8 @@ export class LevelSelectScreen implements Screen {
 
   private drawLevelCell(ctx: CanvasRenderingContext2D, button: ScreenButton): void {
     const levelIndex = Number(button.id.replace('level-', ''));
-    const bestScore = this.saveData.bestScores[levelIndex] ?? 0;
+    const levelSignature = getLevelSignature(levelIndex);
+    const bestScore = this.saveData.bestScores[levelSignature] ?? this.saveData.bestScores[String(levelIndex)] ?? 0;
     const completed = bestScore > 0;
 
     ctx.save();

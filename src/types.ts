@@ -58,7 +58,7 @@ export interface LevelData {
 
 export interface SaveData {
   highestUnlocked: number;
-  bestScores: Record<number, number>;
+  bestScores: Record<string, number>;
   effectsMuted: boolean;
   vibrationEnabled: boolean;
   musicVolume: number;

@@ -102,16 +102,14 @@ export class SaveManager {
 
     const candidate = data as Partial<SaveData>;
     const legacyCandidate = data as { muted?: unknown };
-    const bestScores: Record<number, number> = {};
+    const bestScores: Record<string, number> = {};
     const highestUnlocked = candidate.highestUnlocked;
     const musicVolume = candidate.musicVolume;
 
     if (candidate.bestScores && typeof candidate.bestScores === 'object') {
-      for (const [levelIndex, score] of Object.entries(candidate.bestScores)) {
-        const parsedLevelIndex = Number(levelIndex);
-
-        if (Number.isInteger(parsedLevelIndex) && typeof score === 'number' && Number.isFinite(score)) {
-          bestScores[parsedLevelIndex] = Math.max(0, Math.floor(score));
+      for (const [levelKey, score] of Object.entries(candidate.bestScores)) {
+        if (typeof score === 'number' && Number.isFinite(score)) {
+          bestScores[levelKey] = Math.max(0, Math.floor(score));
         }
       }
     }

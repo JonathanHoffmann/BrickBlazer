@@ -1,5 +1,5 @@
 import { CANVAS_HEIGHT, CANVAS_WIDTH, LEVELS_UNLOCKED_AHEAD } from '../constants';
-import { levels } from '../levels';
+import { getLevelSignature, levels } from '../levels';
 import { SaveManager } from '../storage/SaveManager';
 import { AudioSystem } from '../systems/AudioSystem';
 import { GameState, type GameContext, type GameRunResult, type Screen } from '../types';
@@ -96,10 +96,11 @@ export class LevelCompleteScreen implements Screen {
     }
 
     const saveData = this.saveManager.load();
-    const previousBest = saveData.bestScores[this.result.levelIndex] ?? 0;
+    const levelSignature = getLevelSignature(this.result.levelIndex);
+    const previousBest = saveData.bestScores[levelSignature] ?? saveData.bestScores[String(this.result.levelIndex)] ?? 0;
     this.newBest = this.result.score > previousBest;
     this.bestScore = Math.max(previousBest, this.result.score);
-    saveData.bestScores[this.result.levelIndex] = this.bestScore;
+    saveData.bestScores[levelSignature] = this.bestScore;
     saveData.highestUnlocked = Math.max(
       saveData.highestUnlocked,
       Math.min(this.result.levelIndex + LEVELS_UNLOCKED_AHEAD, levels.length - 1),

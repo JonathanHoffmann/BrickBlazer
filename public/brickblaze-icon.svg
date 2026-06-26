@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Brickblaze icon</title>
+  <desc id="desc">A cracked ember brick struck by a cyan ball.</desc>
+  <defs>
+    <linearGradient id="bg" x1="104" y1="48" x2="408" y2="464" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="0.58" stop-color="#1e1b4b"/>
+      <stop offset="1" stop-color="#7f1d1d"/>
+    </linearGradient>
+    <linearGradient id="brick" x1="120" y1="172" x2="392" y2="356" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fb923c"/>
+      <stop offset="0.44" stop-color="#ef4444"/>
+      <stop offset="1" stop-color="#991b1b"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0.98 0 1 0 0 0.42 0 0 1 0 0.12 0 0 0 0.7 0"/>
+      <feBlend in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path d="M92 410c48 24 112 36 164 36s116-12 164-36c-10 35-72 62-164 62s-154-27-164-62Z" fill="#fb923c" opacity="0.36"/>
+  <g filter="url(#glow)">
+    <rect x="104" y="166" width="304" height="188" rx="26" fill="url(#brick)"/>
+    <path d="M104 226h304M104 292h304M206 166v60M306 226v66M196 292v62M324 292v62" stroke="#fed7aa" stroke-width="12" stroke-linecap="round" opacity="0.68"/>
+    <path d="M254 166l-28 74 44-18-26 132 72-156-48 22 28-54Z" fill="#7f1d1d" opacity="0.9"/>
+    <path d="M254 166l-28 74 44-18-26 132" fill="none" stroke="#fde68a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.72"/>
+  </g>
+  <circle cx="366" cy="142" r="42" fill="#67e8f9"/>
+  <circle cx="354" cy="130" r="12" fill="#ecfeff" opacity="0.9"/>
+  <path d="M328 168l-42 34M388 184l22 42M324 122l-48-20" stroke="#a5f3fc" stroke-width="14" stroke-linecap="round" opacity="0.78"/>
+  <path d="M126 374h260" stroke="#fed7aa" stroke-width="14" stroke-linecap="round" opacity="0.7"/>
+</svg>

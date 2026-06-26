@@ -1,0 +1,17 @@
+{
+  "name": "Brickblaze",
+  "short_name": "Brickblaze",
+  "description": "An arcade brick breaker with blazing power-ups.",
+  "start_url": "/",
+  "display": "fullscreen",
+  "background_color": "#05070d",
+  "theme_color": "#7f1d1d",
+  "icons": [
+    {
+      "src": "/brickblaze-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

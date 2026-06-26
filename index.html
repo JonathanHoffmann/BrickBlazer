@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Brickblaze</title>
+    <link rel="icon" type="image/svg+xml" href="/brickblaze-icon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#7f1d1d" />
+    <style>
+      :root {
+        --safe-area-inset-top: env(safe-area-inset-top, 0px);
+        --safe-area-inset-right: env(safe-area-inset-right, 0px);
+        --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+        --safe-area-inset-left: env(safe-area-inset-left, 0px);
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        min-height: 100dvh;
+        margin: 0;
+        background: #05070d;
+        overscroll-behavior: none;
+      }
+
+      body {
+        box-sizing: border-box;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        padding: var(--safe-area-inset-top) var(--safe-area-inset-right) var(--safe-area-inset-bottom) var(--safe-area-inset-left);
+        touch-action: none;
+        user-select: none;
+      }
+
+      canvas {
+        display: block;
+        width: 450px;
+        height: 800px;
+        max-width: 100%;
+        max-height: 100dvh;
+        background: #101624;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="game-canvas" aria-label="Brickblaze game canvas"></canvas>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

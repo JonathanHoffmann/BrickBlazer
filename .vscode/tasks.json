@@ -1,0 +1,59 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build",
+            "type": "npm",
+            "script": "build",
+            "group": "build",
+            "problemMatcher": "$tsc"
+        },
+        {
+            "label": "Build Android App",
+            "type": "npm",
+            "script": "build:android",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Start Server 5173",
+            "type": "shell",
+            "command": "npm run dev -- --port 5173",
+            "group": "build",
+            "isBackground": true,
+            "problemMatcher": [],
+            "presentation": {
+                "panel": "dedicated",
+                "reveal": "always",
+                "clear": true
+            }
+        },
+        {
+            "label": "Start Server 5174 Dev Flag",
+            "type": "shell",
+            "command": "VITE_ENABLE_DEV_LEVELS=true npm run dev -- --port 5174",
+            "group": "build",
+            "isBackground": true,
+            "problemMatcher": [],
+            "presentation": {
+                "panel": "dedicated",
+                "reveal": "always",
+                "clear": true
+            }
+        },
+        {
+            "label": "Quit Server 5173",
+            "type": "shell",
+            "command": "if command -v lsof >/dev/null 2>&1; then lsof -tiTCP:5173 -sTCP:LISTEN | xargs -r kill || true; elif command -v fuser >/dev/null 2>&1; then fuser -k 5173/tcp || true; else echo 'No lsof or fuser command found to kill port 5173.' >&2; exit 1; fi",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Quit Server 5174",
+            "type": "shell",
+            "command": "if command -v lsof >/dev/null 2>&1; then lsof -tiTCP:5174 -sTCP:LISTEN | xargs -r kill || true; elif command -v fuser >/dev/null 2>&1; then fuser -k 5174/tcp || true; else echo 'No lsof or fuser command found to kill port 5174.' >&2; exit 1; fi",
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}

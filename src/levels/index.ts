@@ -14,27 +14,38 @@ const textLevelFiles = import.meta.glob('./level*.txt', {
   query: '?raw',
 }) as Record<string, string>;
 
-export const textLevelDefinitions: TextLevelDefinition[] = Object.entries(textLevelFiles)
-  .sort(([pathA], [pathB]) => pathA.localeCompare(pathB, undefined, { numeric: true }))
-  .map(([path, text]) => {
-    const fileName = path.replace('./', '');
+function loadTextLevelDefinitions(): TextLevelDefinition[] {
+  return Object.entries(textLevelFiles)
+    .sort(([pathA], [pathB]) => pathA.localeCompare(pathB, undefined, { numeric: true }))
+    .map(([path, text]) => {
+      const fileName = path.replace('./', '');
 
-    return {
-      fileName,
-      text,
-      data: parseTextLevel(text, fileName),
-    };
-  });
+      return {
+        fileName,
+        text,
+        data: parseTextLevel(text, fileName),
+      };
+    });
+}
 
-const devLevelDefinitions = textLevelDefinitions.filter((level) => level.fileName === 'level00.txt');
-const playableTextLevelDefinitions = textLevelDefinitions.filter((level) => level.fileName !== 'level00.txt');
+export const textLevelDefinitions: TextLevelDefinition[] = [];
+export const devLevels: LevelData[] = [];
+export const playableLevels: LevelData[] = [];
+export const levels: LevelData[] = [];
 
-export const devLevels = devLevelDefinitions.map((level) => level.data);
+export function rebuildLevelCollections(): void {
+  const devLevelDefinitions = textLevelDefinitions.filter((level) => level.fileName === 'level00.txt');
+  const playableTextLevelDefinitions = textLevelDefinitions.filter((level) => level.fileName !== 'level00.txt');
 
-export const playableLevels = [
-  ...playableTextLevelDefinitions.map((level) => level.data),
-];
+  devLevels.splice(0, devLevels.length, ...devLevelDefinitions.map((level) => level.data));
+  playableLevels.splice(0, playableLevels.length, ...playableTextLevelDefinitions.map((level) => level.data));
+  levels.splice(0, levels.length, ...(DEV_TOOLS_ENABLED ? [...devLevels, ...playableLevels] : playableLevels));
+}
 
-export const levels = DEV_TOOLS_ENABLED
-  ? [...devLevels, ...playableLevels]
-  : playableLevels;
+export function refreshLevelDefinitions(definitions: TextLevelDefinition[] = loadTextLevelDefinitions()): TextLevelDefinition[] {
+  textLevelDefinitions.splice(0, textLevelDefinitions.length, ...definitions);
+  rebuildLevelCollections();
+  return textLevelDefinitions;
+}
+
+refreshLevelDefinitions();

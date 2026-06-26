@@ -1,5 +1,5 @@
 import { BRICK_COLS, BRICK_ROWS, CANVAS_HEIGHT, CANVAS_WIDTH } from '../constants';
-import { textLevelDefinitions, type TextLevelDefinition } from '../levels';
+import { rebuildLevelCollections, textLevelDefinitions, type TextLevelDefinition } from '../levels';
 import { parseTextLevel } from '../levels/parseTextLevel';
 import { POWERUP_LABELS, POWERUP_TYPES } from '../powerUpConfig';
 import { AudioSystem } from '../systems/AudioSystem';
@@ -131,12 +131,27 @@ export class LevelEditorScreen implements Screen {
   private readonly prevButton: ScreenButton = {
     id: 'prev',
     label: 'Prev',
-    rect: { x: 32, y: 108, width: 82, height: 38 },
+    rect: { x: 32, y: 73, width: 82, height: 30 },
+  };
+  private readonly swapPrevButton: ScreenButton = {
+    id: 'swap-prev',
+    label: 'Swap ←',
+    rect: { x: 32, y: 108, width: 104, height: 30 },
   };
   private readonly nextButton: ScreenButton = {
     id: 'next',
     label: 'Next',
-    rect: { x: CANVAS_WIDTH - 114, y: 108, width: 82, height: 38 },
+    rect: { x: CANVAS_WIDTH - 114, y: 73, width: 82, height: 30 },
+  };
+  private readonly reloadButton: ScreenButton = {
+    id: 'reload',
+    label: 'Reload',
+    rect: { x: CANVAS_WIDTH / 2 - 56, y: 73, width: 112, height: 30 },
+  };
+  private readonly swapNextButton: ScreenButton = {
+    id: 'swap-next',
+    label: 'Swap →',
+    rect: { x: CANVAS_WIDTH - 136, y: 108, width: 104, height: 30 },
   };
   private readonly speedDownButton: ScreenButton = {
     id: 'speed-down',
@@ -193,8 +208,11 @@ export class LevelEditorScreen implements Screen {
     ctx.fillText('Level Editor', CANVAS_WIDTH / 2, 42);
 
     drawButton(ctx, this.backButton);
-    drawButton(ctx, { ...this.prevButton, disabled: this.levelIndex === 0 });
-    drawButton(ctx, { ...this.nextButton, disabled: this.levelIndex >= textLevelDefinitions.length });
+    drawButton(ctx, this.getNavigationButton(this.prevButton, this.levelIndex === 0));
+    drawButton(ctx, this.getNavigationButton(this.swapPrevButton, !this.canSwapWithPrevious()));
+    drawButton(ctx, { ...this.reloadButton, disabled: this.saving });
+    drawButton(ctx, this.getNavigationButton(this.nextButton, this.levelIndex >= textLevelDefinitions.length));
+    drawButton(ctx, this.getNavigationButton(this.swapNextButton, !this.canSwapWithNext()));
 
     ctx.fillStyle = '#bae6fd';
     ctx.font = '700 17px system-ui, sans-serif';
@@ -324,14 +342,24 @@ export class LevelEditorScreen implements Screen {
   private getButtons(): ScreenButton[] {
     return [
       this.backButton,
-      { ...this.prevButton, disabled: this.levelIndex === 0 },
-      { ...this.nextButton, disabled: this.levelIndex >= textLevelDefinitions.length },
+      this.getNavigationButton(this.prevButton, this.levelIndex === 0),
+      this.getNavigationButton(this.swapPrevButton, !this.canSwapWithPrevious()),
+      { ...this.reloadButton, disabled: this.saving },
+      this.getNavigationButton(this.nextButton, this.levelIndex >= textLevelDefinitions.length),
+      this.getNavigationButton(this.swapNextButton, !this.canSwapWithNext()),
       this.speedDownButton,
       this.speedUpButton,
       { ...this.clearButton, disabled: this.saving },
       this.powerUpsButton,
       { ...this.saveButton, disabled: this.saving || !this.dirty },
     ];
+  }
+
+  private getNavigationButton(button: ScreenButton, baseDisabled: boolean): ScreenButton {
+    return {
+      ...button,
+      disabled: baseDisabled || this.dirty,
+    };
   }
 
   private getKeyboardSymbol(input: InputSystem): EditableSymbol | null {
@@ -350,8 +378,17 @@ export class LevelEditorScreen implements Screen {
       case 'prev':
         this.loadLevel(this.levelIndex - 1);
         break;
+      case 'swap-prev':
+        void this.swapLevelWithAdjacent('prev');
+        break;
+      case 'reload':
+        void this.reloadLevel();
+        break;
       case 'next':
         this.loadLevel(this.levelIndex + 1);
+        break;
+      case 'swap-next':
+        void this.swapLevelWithAdjacent('next');
         break;
       case 'speed-down':
         this.setSpeed(this.speed - 0.05);
@@ -369,6 +406,140 @@ export class LevelEditorScreen implements Screen {
         void this.saveLevel();
         break;
     }
+  }
+
+  private async reloadLevel(): Promise<void> {
+    if (this.saving) {
+      return;
+    }
+
+    const currentLevel = textLevelDefinitions[this.levelIndex];
+
+    if (!currentLevel) {
+      this.statusMessage = 'No level to reload';
+      return;
+    }
+
+    this.saving = true;
+    this.statusMessage = `Reloading ${currentLevel.fileName}...`;
+
+    try {
+      const response = await fetch('/__brickblaze/level-editor/load', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: currentLevel.fileName }),
+      });
+
+      if (!response.ok) {
+        throw new Error(await response.text() || 'Reload failed');
+      }
+
+      const text = await response.text();
+      const data = parseTextLevel(text, currentLevel.fileName);
+
+      currentLevel.text = text;
+      currentLevel.data = data;
+      rebuildLevelCollections();
+      this.loadLevel(this.levelIndex);
+      this.dirty = false;
+      this.statusMessage = `Reloaded ${currentLevel.fileName}`;
+    } catch (error) {
+      this.statusMessage = error instanceof Error ? error.message : 'Reload failed';
+    } finally {
+      this.saving = false;
+    }
+  }
+
+  private canSwapWithPrevious(): boolean {
+    return this.levelIndex > 0 && this.levelIndex < textLevelDefinitions.length;
+  }
+
+  private canSwapWithNext(): boolean {
+    return this.levelIndex >= 0 && this.levelIndex < textLevelDefinitions.length - 1;
+  }
+
+  private async swapLevelWithAdjacent(direction: 'prev' | 'next'): Promise<void> {
+    if (this.saving) {
+      return;
+    }
+
+    if (direction === 'prev') {
+      if (!this.canSwapWithPrevious()) {
+        return;
+      }
+    } else if (!this.canSwapWithNext()) {
+      return;
+    }
+
+    const currentIndex = this.levelIndex;
+    const swapIndex = direction === 'prev' ? currentIndex - 1 : currentIndex + 1;
+    const currentLevel = textLevelDefinitions[currentIndex];
+    const adjacentLevel = textLevelDefinitions[swapIndex];
+
+    if (!currentLevel || !adjacentLevel) {
+      return;
+    }
+
+    const currentText = this.serializeLevel();
+    const adjacentText = adjacentLevel.text;
+
+    this.saving = true;
+    this.statusMessage = `Swapping with ${direction === 'prev' ? 'previous' : 'next'} level...`;
+
+    try {
+      const response = await fetch('/__brickblaze/level-editor/swap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          levels: [
+            { fileName: currentLevel.fileName, text: currentText },
+            { fileName: adjacentLevel.fileName, text: adjacentText },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(await response.text() || 'Swap failed');
+      }
+
+      const currentData = parseTextLevel(currentText, currentLevel.fileName);
+      const adjacentData = parseTextLevel(adjacentText, adjacentLevel.fileName);
+
+      textLevelDefinitions[currentIndex] = {
+        ...currentLevel,
+        text: adjacentText,
+        data: adjacentData,
+      };
+      textLevelDefinitions[swapIndex] = {
+        ...adjacentLevel,
+        text: currentText,
+        data: currentData,
+      };
+
+      rebuildLevelCollections();
+      this.levelIndex = swapIndex;
+      this.loadLevel(this.levelIndex);
+      this.dirty = true;
+      this.statusMessage = `Swapped with ${direction === 'prev' ? 'previous' : 'next'} level`;
+    } catch (error) {
+      this.statusMessage = error instanceof Error ? error.message : 'Swap failed';
+    } finally {
+      this.saving = false;
+    }
+  }
+
+  private persistCurrentLevelState(): void {
+    const level = textLevelDefinitions[this.levelIndex];
+
+    if (!level) {
+      return;
+    }
+
+    const text = this.serializeLevel();
+    const data = parseTextLevel(text, level.fileName);
+
+    level.text = text;
+    level.data = data;
   }
 
   private loadLevel(levelIndex: number): void {
@@ -458,6 +629,7 @@ export class LevelEditorScreen implements Screen {
         textLevelDefinitions.push({ fileName, text, data });
       }
 
+      rebuildLevelCollections();
       this.dirty = false;
       this.statusMessage = `Saved ${fileName}`;
     } catch (error) {
@@ -773,7 +945,7 @@ export class LevelEditorScreen implements Screen {
       ctx.roundRect(x + 6, PALETTE_Y + 8, PALETTE_BUTTON_WIDTH - 12, 18, 4);
       ctx.fill();
 
-      ctx.fillStyle = item.symbol === '1' ? '#082f49' : '#f8fafc';
+      ctx.fillStyle = '#f8fafc';
       ctx.font = '800 13px system-ui, sans-serif';
       ctx.fillText(item.label, x + PALETTE_BUTTON_WIDTH / 2, PALETTE_Y + 35);
     });

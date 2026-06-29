@@ -1,16 +1,16 @@
 # 1=one hit, 2=two hit, 3=three hit, U=unbreakable, T=TNT, S=sensor, .=empty
 # powerupChance=overall drop chance 0..1; powerup.<name>=relative drop weight, 0 disables
-speed=1.0
-powerupChance=0.15
+speed=1
+powerupChance=0.25
 powerup.multiBall=1
-powerup.widePaddle=1
-powerup.laserPaddle=1
-powerup.slowBall=1
-powerup.fireball=1
-powerup.stickyPaddle=1
-powerup.extraLife=1
-powerup.narrowPaddle=1
-powerup.fastBall=1
+powerup.widePaddle=0
+powerup.laserPaddle=0
+powerup.slowBall=0
+powerup.fireball=0
+powerup.stickyPaddle=0
+powerup.extraLife=0
+powerup.narrowPaddle=0
+powerup.fastBall=0
 .1111111.
 .1111111.
 .1111111.
